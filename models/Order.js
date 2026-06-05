@@ -13,9 +13,10 @@ const orderSchema = new mongoose.Schema({
   items: [orderItemSchema],
   shippingAddress: {
     fullName: String,
+    phone:   String,
     address: String,
-    city: String,
-    pin: String,
+    city:    String,
+    pin:     String,
     country: String,
   },
   paymentMethod: { type: String, default: 'COD' },
