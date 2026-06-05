@@ -1,0 +1,26 @@
+# Node
+node_modules/
+
+# Environment
+.env
+
+# Logs
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VSCode
+.vscode/
+
+# Profiler and test artifacts
+.clinic/
+isolate-*.log
+profile.txt
+
+# Build
+dist/
+
+# Lockfiles (optional)
+# package-lock.json
