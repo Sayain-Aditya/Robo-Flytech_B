@@ -14,7 +14,19 @@ connectDB();
 // Security & performance middlewares
 app.use(helmet());
 app.use(compression());
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://robo-flytech-b.vercel.app',
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) cb(null, true);
+    else cb(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10kb' }));
 
 // Basic rate limiting for protection, but allow realistic traffic levels
