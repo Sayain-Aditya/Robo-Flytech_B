@@ -15,7 +15,7 @@ exports.getProducts = async (req, res) => {
       Product.find(filter)
         .skip(skip)
         .limit(limit)
-        .select('name price image rating category')
+        .select('name price originalPrice image rating category brand stock createdAt')
         .lean(),
     ]);
 

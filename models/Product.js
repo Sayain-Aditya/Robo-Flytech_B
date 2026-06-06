@@ -18,6 +18,13 @@ const productSchema = new mongoose.Schema({
       value: { type: String, required: true },
     }
   ],
+  warranty:        { type: String, default: '' },
+  warrantyEnabled: { type: Boolean, default: false },
+  warrantyDuration:{ type: Number, default: 1 },
+  warrantyUnit:    { type: String, enum: ['Days', 'Months', 'Years'], default: 'Years' },
+  returnsEnabled:  { type: Boolean, default: false },
+  returnDays:      { type: Number, default: 7 },
+  freeShipping:    { type: Boolean, default: false },
 }, { timestamps: true });
 
 // Indexes for common queries: text search on name and filter by category

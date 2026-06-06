@@ -5,6 +5,7 @@ const orderItemSchema = new mongoose.Schema({
   name: String,
   image: String,
   price: Number,
+  originalPrice: { type: Number, default: 0 },
   quantity: { type: Number, required: true },
 });
 
@@ -23,6 +24,9 @@ const orderSchema = new mongoose.Schema({
   itemsPrice: Number,
   shippingPrice: Number,
   totalPrice: Number,
+  originalItemsPrice: { type: Number, default: 0 },  // MRP total before offer discounts
+  couponCode:   { type: String, default: '' },
+  discount:     { type: Number, default: 0 },
   isPaid: { type: Boolean, default: false },
   paidAt: Date,
   status: {

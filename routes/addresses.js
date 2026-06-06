@@ -38,4 +38,17 @@ router.delete('/:addressId', protect, async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// PUT update a specific address by its _id
+router.put('/:addressId', protect, async (req, res) => {
+  try {
+    const { fullName, phone, address, city, pin, country } = req.body;
+    const doc = await Address.findOneAndUpdate(
+      { user: req.user._id, 'addresses._id': req.params.addressId },
+      { $set: { 'addresses.$.fullName': fullName, 'addresses.$.phone': phone, 'addresses.$.address': address, 'addresses.$.city': city, 'addresses.$.pin': pin, 'addresses.$.country': country || 'India' } },
+      { new: true }
+    );
+    res.json(doc ? doc.addresses : []);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 module.exports = router;

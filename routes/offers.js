@@ -20,6 +20,36 @@ offerRouter.get('/active', async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 });
 
+// Public — get a single product with offer price applied
+offerRouter.get('/product/:id', async (req, res) => {
+  try {
+    const now = new Date();
+    const [product, offers] = await Promise.all([
+      Product.findById(req.params.id),
+      Offer.find({ active: true, startDate: { $lte: now }, endDate: { $gte: now } }).populate('products', '_id')
+    ]);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
+    const prod = product.toObject();
+    const applicable = offers.filter(o => {
+      if (o.scope === 'all') return true;
+      if (o.scope === 'category') return o.categories.includes(product.category);
+      if (o.scope === 'products') return o.products.some(op => op._id.toString() === product._id.toString());
+      return false;
+    });
+    if (applicable.length > 0) {
+      const best = applicable.reduce((prev, cur) => {
+        const prevSave = prev.type === 'percentage' ? product.price * prev.value / 100 : prev.value;
+        const curSave  = cur.type  === 'percentage' ? product.price * cur.value  / 100 : cur.value;
+        return curSave > prevSave ? cur : prev;
+      });
+      prod.offerPrice    = applyOffer(product.price, best);
+      prod.offerBadge    = best.badge || best.name;
+      prod.offerDiscount = best.type === 'percentage' ? `${best.value}% OFF` : `₹${best.value} OFF`;
+    }
+    res.json(prod);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+});
+
 // Public — get products with offer prices applied
 offerRouter.get('/products-with-offers', async (req, res) => {
   try {
