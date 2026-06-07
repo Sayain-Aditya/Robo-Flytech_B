@@ -5,7 +5,7 @@ exports.createOrder = async (req, res) => {
   try {
     const { items, shippingAddress, paymentMethod, itemsPrice, shippingPrice, totalPrice, couponCode, discount, originalItemsPrice } = req.body;
 
-    // Validate stock and deduct
+    // Validate stock availability first
     for (const item of items) {
       const product = await Product.findById(item.product);
       if (!product) return res.status(404).json({ message: `Product not found: ${item.product}` });
@@ -13,9 +13,17 @@ exports.createOrder = async (req, res) => {
         return res.status(400).json({ message: `Insufficient stock for "${product.name}". Available: ${product.stock}` });
       }
     }
-    // Deduct stock
+
+    // Atomically deduct stock — only update if stock is still sufficient
     for (const item of items) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
+      const updated = await Product.findOneAndUpdate(
+        { _id: item.product, stock: { $gte: item.quantity } },
+        { $inc: { stock: -item.quantity } },
+        { new: true }
+      );
+      if (!updated) {
+        return res.status(400).json({ message: `Stock just ran out for one of the items. Please refresh and try again.` });
+      }
     }
 
     const order = await Order.create({

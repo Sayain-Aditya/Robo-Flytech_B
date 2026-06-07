@@ -25,6 +25,7 @@ const productSchema = new mongoose.Schema({
   returnsEnabled:  { type: Boolean, default: false },
   returnDays:      { type: Number, default: 7 },
   freeShipping:    { type: Boolean, default: false },
+  shippingEnabled:  { type: Boolean, default: false },
 }, { timestamps: true });
 
 // Indexes for common queries: text search on name and filter by category
