@@ -1,5 +1,7 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const User = require('../models/User');
+const { sendWhatsAppOrderNotification } = require('../utils/whatsappNotifier');
 
 exports.createOrder = async (req, res) => {
   try {
@@ -26,6 +28,8 @@ exports.createOrder = async (req, res) => {
       }
     }
 
+    const user = await User.findById(req.user.id).select('name email phone');
+
     const order = await Order.create({
       user: req.user.id,
       items,
@@ -38,6 +42,9 @@ exports.createOrder = async (req, res) => {
       couponCode: couponCode || '',
       discount: discount || 0,
     });
+
+    sendWhatsAppOrderNotification(order, user).catch(err => console.error('WhatsApp notification error:', err.message));
+
     res.status(201).json(order);
   } catch (error) {
     res.status(400).json({ message: error.message });
