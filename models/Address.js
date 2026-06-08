@@ -4,7 +4,9 @@ const addressEntrySchema = new mongoose.Schema({
   fullName: { type: String, required: true },
   phone:    { type: String, required: true },
   address:  { type: String, required: true },
+  landmark: { type: String },
   city:     { type: String, required: true },
+  state:    { type: String, required: true },
   pin:      { type: String, required: true },
   country:  { type: String, default: 'India' },
 }, { _id: true, timestamps: true });
