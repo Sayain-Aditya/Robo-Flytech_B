@@ -1,11 +1,35 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const User = require('../models/User');
+const Coupon = require('../models/Coupon');
 const { sendWhatsAppOrderNotification } = require('../utils/whatsappNotifier');
 
 exports.createOrder = async (req, res) => {
   try {
     const { items, shippingAddress, paymentMethod, itemsPrice, shippingPrice, totalPrice, couponCode, discount, originalItemsPrice } = req.body;
+
+    // Validate coupon if provided
+    if (couponCode) {
+      const coupon = await Coupon.findOne({ code: couponCode.toUpperCase() });
+      if (!coupon) return res.status(400).json({ message: 'Invalid coupon code' });
+      if (!coupon.isActive) return res.status(400).json({ message: 'Coupon is not active' });
+      if (coupon.endDate && new Date() > new Date(coupon.endDate)) {
+        return res.status(400).json({ message: 'Coupon has expired' });
+      }
+      if (new Date() < new Date(coupon.startDate)) {
+        return res.status(400).json({ message: 'Coupon is not yet active' });
+      }
+      if (itemsPrice < coupon.minOrderAmount) {
+        return res.status(400).json({ message: `Minimum order amount ₹${coupon.minOrderAmount} required` });
+      }
+      if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
+        return res.status(400).json({ message: 'Coupon usage limit reached' });
+      }
+
+      // Increment usage count
+      coupon.usedCount += 1;
+      await coupon.save();
+    }
 
     // Validate stock availability first
     for (const item of items) {

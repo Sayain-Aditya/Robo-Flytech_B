@@ -50,6 +50,9 @@ app.use('/api/categories', require('./routes/categories'));
 app.use('/api/offers',     require('./routes/offers'));
 app.use('/api/upload',     require('./routes/upload'));
 app.use('/api/hero-slides', require('./routes/heroSlides'));
+app.use('/api/coupons',    require('./routes/coupons'));
+
+app.get('/api', (req, res) => res.json({ message: 'API running' }));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
