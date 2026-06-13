@@ -16,10 +16,10 @@ catRouter.get('/', async (req, res) => {
 // Admin — create
 catRouter.post('/', protect, adminOnly, async (req, res) => {
   try {
-    const { name, image } = req.body;
+    const { name, image, specifications } = req.body;
     if (!name) return res.status(400).json({ message: 'Name is required' });
     const slug = name.toLowerCase().replace(/\s+/g, '-');
-    const cat = await Category.create({ name, slug, image: image || '' });
+    const cat = await Category.create({ name, slug, image: image || '', specifications: specifications || [] });
     res.status(201).json(cat);
   } catch (err) {
     res.status(400).json({ message: err.code === 11000 ? 'Category already exists' : err.message });
@@ -29,8 +29,8 @@ catRouter.post('/', protect, adminOnly, async (req, res) => {
 // Admin — update
 catRouter.put('/:id', protect, adminOnly, async (req, res) => {
   try {
-    const { name, image } = req.body;
-    const update = { image };
+    const { name, image, specifications } = req.body;
+    const update = { image, specifications: specifications || [] };
     if (name) { update.name = name; update.slug = name.toLowerCase().replace(/\s+/g, '-'); }
     const cat = await Category.findByIdAndUpdate(req.params.id, update, { new: true });
     cat ? res.json(cat) : res.status(404).json({ message: 'Category not found' });
