@@ -18,6 +18,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://robo-flytech-b.vercel.app',
   'https://robo-fly-tech.vercel.app',
+  'https://www.roboflytech.in'
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
