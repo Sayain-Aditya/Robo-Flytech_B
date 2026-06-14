@@ -40,6 +40,25 @@ exports.createOrder = async (req, res) => {
       }
     }
 
+    // Check if all products have free shipping
+    const products = await Product.find({ _id: { $in: items.map(i => i.product) } });
+    const allFreeShipping = products.every(p => p.freeShipping === true);
+    
+    let finalShippingPrice;
+    let shippingChargesPending = false;
+    
+    if (allFreeShipping) {
+      // All products have free shipping toggle ON - FREE delivery, no pending
+      finalShippingPrice = 0;
+      shippingChargesPending = false;
+    } else {
+      // At least one product has free shipping toggle OFF - charge shipping but mark as pending for admin review
+      finalShippingPrice = shippingPrice; // Use frontend calculated shipping
+      shippingChargesPending = true; // Show notice that it will be updated
+    }
+    
+    const finalTotalPrice = itemsPrice + finalShippingPrice - (discount || 0);
+
     // Atomically deduct stock — only update if stock is still sufficient
     for (const item of items) {
       const updated = await Product.findOneAndUpdate(
@@ -60,8 +79,9 @@ exports.createOrder = async (req, res) => {
       shippingAddress,
       paymentMethod,
       itemsPrice,
-      shippingPrice,
-      totalPrice,
+      shippingPrice: finalShippingPrice,
+      shippingChargesPending,
+      totalPrice: finalTotalPrice,
       originalItemsPrice: originalItemsPrice || itemsPrice,
       couponCode: couponCode || '',
       discount: discount || 0,

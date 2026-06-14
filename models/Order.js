@@ -25,6 +25,7 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, default: 'COD' },
   itemsPrice: Number,
   shippingPrice: Number,
+  shippingChargesPending: { type: Boolean, default: false },
   totalPrice: Number,
   originalItemsPrice: { type: Number, default: 0 },  // MRP total before offer discounts
   couponCode:   { type: String, default: '' },

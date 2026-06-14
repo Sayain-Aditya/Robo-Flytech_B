@@ -61,10 +61,58 @@ adminRouter.put('/orders/:id/status', async (req, res) => {
   }
 });
 
+// Update shipping charges
+adminRouter.put('/orders/:id/shipping', async (req, res) => {
+  try {
+    const { shippingPrice } = req.body;
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found' });
+
+    const oldShipping = order.shippingPrice || 0;
+    const newShipping = Number(shippingPrice) || 0;
+    
+    order.shippingPrice = newShipping;
+    order.totalPrice = order.itemsPrice + newShipping - (order.discount || 0);
+    order.shippingChargesPending = false;
+    
+    await order.save();
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // All customers
 adminRouter.get('/customers', async (req, res) => {
   const users = await User.find({ role: 'user' }).select('-password').sort('-createdAt');
   res.json(users);
+});
+
+// Get single customer details with addresses and order stats
+adminRouter.get('/customers/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) return res.status(404).json({ message: 'Customer not found' });
+
+    const Address = require('../models/Address');
+    const addressDoc = await Address.findOne({ user: req.params.id });
+    const addresses = addressDoc?.addresses || [];
+    
+    const orders = await Order.find({ user: req.params.id }).sort('-createdAt');
+    const orderStats = {
+      total: orders.length,
+      pending: orders.filter(o => o.status === 'Pending').length,
+      processing: orders.filter(o => o.status === 'Processing').length,
+      shipped: orders.filter(o => o.status === 'Shipped').length,
+      delivered: orders.filter(o => o.status === 'Delivered').length,
+      cancelled: orders.filter(o => o.status === 'Cancelled').length,
+      totalSpent: orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0),
+    };
+
+    res.json({ user, addresses, orders, orderStats });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 module.exports = adminRouter;
